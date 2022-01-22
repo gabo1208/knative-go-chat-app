@@ -1,0 +1,41 @@
+.menu-column {
+  display: flex;
+  width: 100%;
+  background-color: #afa5a5cf;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.option-card, .option-img-wrapper, .option-name {
+  display: flex;
+}
+
+.option-card {
+  background-color: white;
+  opacity: 0.85;
+  border-radius: 25px;
+  border-radius: 0px 0px 24px 0px;
+}
+
+.option-info {
+  flex-direction: column;
+  flex: 3;
+  padding: 20px;
+}
+
+.option-name {
+  margin-bottom: 4px;
+}
+
+.option-img {
+  width: 34px;
+  padding: 35px 24px;
+}
+
+.chat-input.menu {
+  padding: 24px 24px 22px 0;
+}
+
+.option-img.logout {
+  opacity: 0.7;
+}

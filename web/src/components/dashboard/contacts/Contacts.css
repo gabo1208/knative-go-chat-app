@@ -1,0 +1,44 @@
+.contacts-column {
+  width: 100%;
+  background-color: #afa5a5cf;
+}
+
+.contact-card, .contact-img, .contact-name, .contact-last-seen, .contact-last-msg {
+  display: flex;
+}
+
+.contact-img, .contact-info {
+  flex: 1;
+  padding: 20px;
+}
+
+.contact-card {
+  background-color: white;
+  opacity: 0.75;
+  border-radius: 25px;
+  padding: 10px;
+  border-radius: 0px 0px 24px 0px;
+}
+
+.contact-card.selected {
+  opacity: 0.85;
+}
+
+.contact-info {
+  flex-direction: column;
+  flex: 3;
+}
+
+.user-name {
+  margin-bottom: 4px;
+}
+
+.user-img {
+  width: 90px;
+}
+
+.contact-last-seen {
+  margin-top: -10px;
+  font-size: 11px;
+  color: gray;
+}

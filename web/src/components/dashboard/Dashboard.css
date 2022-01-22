@@ -1,0 +1,36 @@
+.dashboard, .side-bar, .chat, .app-container {
+  display: flex;
+}
+
+.dashboard {
+  height: calc(100% - 90px);
+  background-image: url(../../static/img/whatsup-bg.jpg);
+  background-size: contain;
+  background-position-y: -1px;
+}
+
+.side-bar {
+  flex: 1;
+  min-width: 290px;
+}
+
+.app-container.bg {
+  background-color: #ffffff1c;
+}
+
+.chat {
+  flex: 3.5;
+}
+
+.chat-input {
+  font-size: 16px;
+  width: 100%;
+  border-radius: 25px;
+  border: none;
+  outline: none;
+  padding: 24px;
+}
+
+.blocked .chat-input {
+  pointer-events: none;
+}

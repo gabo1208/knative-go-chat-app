@@ -1,0 +1,81 @@
+.chat-column {
+  width: 100%;
+}
+
+.messages, .chat-section, .messages-bubble, .chat-bubble, .bubbles-bg {
+  display: flex;
+  flex: 1;
+}
+
+.messages {
+  height: 80%;
+}
+
+.chat-section {
+  height: 20%;
+}
+
+.messages-bubble {
+  padding: 20px 40px 10px;
+}
+
+.chat-bubble {
+  padding: 10px 40px 20px;
+}
+
+.bubbles-bg {
+  background-color: #ffffffde;
+  padding: 30px;
+  border-radius: 25px;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.bubbles-bg.no-overflow {
+  overflow: hidden;
+}
+
+.contact-message, .user-message {
+  height: fit-content;
+  width: fit-content;
+  min-width: 35%;
+  max-width: 80%;
+  padding: 20px;
+  margin-top: 5px;
+  display: flex;
+}
+
+.contact-message {
+  background-color: white;
+  border-radius: 0 20px 20px;
+}
+
+.user-message {
+  background-color: #f9f8f8;
+  border-radius: 20px 0px 20px 20px;
+  align-self: flex-end;
+}
+
+.chat-bubble .bubbles-bg {
+  flex-direction: row;
+}
+
+.send-btn {
+  margin: auto 20px auto 0;
+  width: 54px;
+  opacity: 0.7;
+}
+
+.chat-default-msg {
+  font-weight: 500;
+}
+
+.filter, .no-contacts-msg {
+  display: flex;
+  padding: 20px 24px;
+}
+
+.no-contacts-msg {
+  font-weight: 600;
+  padding-top: 10px;
+}

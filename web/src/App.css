@@ -1,0 +1,107 @@
+html, body, #root, .App {
+  height: 100%;
+}
+
+header {
+  text-align: left;
+  font-family: cursive;
+  text-shadow: -2px 3px 2px black;
+  font-size: 20px;
+  color: white;
+  font-weight: bold;
+  padding: 25px;
+  background-color: #37e737;
+  box-shadow: -2px 1px 10px black;
+}
+
+.header-img {
+  border-radius: 50%;
+  width: 54px;
+  margin: 0 20px -14px 0;
+  display: inline-flex;
+}
+
+.app-container {
+  max-width: 1890px;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.container {
+  display: inline-block;
+}
+
+.bar1, .bar2, .bar3 {
+  width: 26px;
+  height: 3px;
+  background-color: #333;
+  margin: 6px 20px 0 0;
+  transition: 0.4s;
+}
+
+.app-title, .container {
+  margin-top: 10px;
+}
+
+/* Rotate first bar */
+.change .bar1 {
+  -webkit-transform: rotate(-45deg) translate(-7px, 7px);
+  transform: rotate(-45deg) translate(-7px, 7px);
+}
+
+/* Fade out the second bar */
+.change .bar2 {
+  opacity: 0;
+}
+
+/* Rotate last bar */
+.change .bar3 {
+  -webkit-transform: rotate(45deg) translate(-5px, -6px);
+  transform: rotate(45deg) translate(-5px, -6px);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.blocked {
+  cursor: not-allowed;
+}
+
+/* Scrollbar css */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+.side-bar-header {
+  flex: 1;
+}
+
+.chat-header {
+  flex: 3.5;
+}
+
+.change, .header-container {
+  display: flex;
+}
+
+.header-container {
+  max-width: 1890px;
+  margin: auto;
+}
