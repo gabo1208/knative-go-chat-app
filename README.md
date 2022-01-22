@@ -10,19 +10,19 @@ Websocket based CloudEvents chat viewer.
 
 Test the frontend only:
 ```shel
-cd pkg/frontend
+cd web
 npm start
 ```
-Check on [React's README.md](./pkg/frontend/README.md) for more detailed info
+Check on [React's README.md](./web/README.md) for more detailed info
 
 Build the frontend:
 ```shell
-cd pkg/frontend
+cd web
 npm run build4ko
 ```
 or
 ```shell
-cd pkg/frontend
+cd web
 npm run build
 cp -r build/* ../../cmd/go-chat-client/kodata/www/
 cd ../..
