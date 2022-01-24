@@ -1,6 +1,6 @@
-# Go Chat Client
+# Go Chat App
 
-Websocket based CloudEvents chat viewer.
+Websocket based CloudEvents chat app.
 
 ## Usage
 
@@ -25,7 +25,7 @@ or
 cd web
 npm run build
 cp -r build/* ../../cmd/go-chat-client/kodata/www/
-cd ../..
+cd ..
 ```
 
 Now to run the ko image locally:

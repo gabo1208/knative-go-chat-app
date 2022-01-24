@@ -34,3 +34,17 @@
 .blocked .chat-input {
   pointer-events: none;
 }
+
+/* Mobile css */
+.mobile-dashboard {
+  display: flex;
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .send-btn {
+    margin: auto 10px auto 0;
+    width: 50px;
+    opacity: 0.7;
+  }
+}
