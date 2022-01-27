@@ -21,7 +21,6 @@ func New(root string) *Controller {
 func (c *Controller) Mux() *http.ServeMux {
 	c.once.Do(func() {
 		m := http.NewServeMux()
-		// m.HandleFunc("/ui", c.RootHandler)
 		m.Handle("/ws", websocket.Handler(c.WSHandler))
 		c.mux = m
 	})

@@ -81,11 +81,7 @@ export function Dashboard(props) {
       wsURL = "wss://" + document.location.host + "/ws";
     }
 
-    wsURL = "ws://sockeye.default.20.190.7.108.xip.io/ws";
-
     console.log("WS URL: " + wsURL);
-
-    let that = this;
 
     let sock = new ReconnectingWebSocket(wsURL);
     sock.onopen = function () {
@@ -102,7 +98,7 @@ export function Dashboard(props) {
       let t = JSON.parse(JSON.parse(e.data)); // at the moment the ws sends down a double encoded thing.
 
       console.log(t)
-      that.onCloudEvent(t)
+      onCloudEvent(t)
     }
   })
 
@@ -129,12 +125,12 @@ export function Dashboard(props) {
         });
         return;
       }
+
       if (data["data"] === undefined) {
-        this.showError();
+        showError();
         console.log("More information on the invalid event: ", event);
         return;
       }
-
     }
 
     if (!this.state.revert) {
@@ -145,13 +141,12 @@ export function Dashboard(props) {
         });
         return;
       }
+
       if (data["data"] === undefined) {
-        this.showError();
+        showError();
         console.log("More information on the invalid event: ", event);
         return;
       }
-
-
     }
   }
 
