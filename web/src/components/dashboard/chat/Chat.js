@@ -27,32 +27,38 @@ export function Chat(props) {
       return "Please choose an username to start chatting!"
     }
 
-    if (!props.connectedUsersNumber) {
+    let connectedUsersNumber = Object.keys(props.connectedUsers)?.length
+
+    if (!connectedUsersNumber) {
       return "Wait for someone to come online and start chatting :)!"
     }
 
-    let userChatMsg = props.selectedChat?.chatUsername === props.username
+    let userChatMsg = props.selectedChat?.username === props.username
       ? "Here is a space where you can talk to yourself and 'no one' is going to jugde you!"
-      : `Start chatting with ${props.selectedChat?.chatUsername}!`
+      : `Start chatting with ${props.selectedChat?.username}!`
     return props.selectedChat ? userChatMsg
       : "Click on one of your contacts and start chatting!"
   }
 
-  const renderMessages = (messagesList) => {
-    return messagesList.map((message, i) => (
-      <div key={i} className={(message.mine ? "user" : "contact") + "-message"}>
+  const renderMessages = () => {
+    console.log(props)
+    return props.selectedChat?.messages?.map((message, i) => {
+      return <div key={i} className={"fade-in " +
+        (message.mine ? "user" : "contact") + "-message"
+      }>
         {message.content}
       </div>
-    ))
+    })
   }
 
+  let connectedUsersNumber = Object.keys(props.connectedUsers)?.length
   return (
     <div className="chat-column">
       <div className="messages">
         <div className="messages-bubble">
           <div className="bubbles-bg">
             {props.selectedChat?.messages.length
-              ? renderMessages(props.selectedChat?.messages)
+              ? renderMessages()
               : <div className="empty-chat">
                 <h3 className="chat-default-msg">{chatDefaultMsg()}</h3>
               </div>}
@@ -61,7 +67,7 @@ export function Chat(props) {
       </div>
       <div
         className={
-          `chat-section ${(!props.username || !props.connectedUsersNumber) && "blocked"}`
+          `chat-section ${(!connectedUsersNumber || !props.selectedUsername) && "blocked"}`
         }
       >
         <div className="chat-bubble">
@@ -69,7 +75,7 @@ export function Chat(props) {
             <img
               src={sendBtn}
               className={
-                `send-btn ${props.username && props.connectedUsersNumber && "cursor-pointer"}
+                `send-btn ${connectedUsersNumber && props.selectedUsername && "cursor-pointer"}
               `}
               alt="send-btn.png"
               onClick={sendButton}
@@ -82,6 +88,7 @@ export function Chat(props) {
               value={messageInput}
               onChange={chatInputHandler}
               onKeyDown={handleChatInputKeyDown}
+              maxlength="256"
             />
           </div>
         </div>

@@ -70,7 +70,7 @@
   font-weight: 500;
 }
 
-.filter, .no-contacts-msg {
+.no-contacts-msg {
   display: flex;
   padding: 20px 24px;
 }
@@ -78,4 +78,9 @@
 .no-contacts-msg {
   font-weight: 600;
   padding-top: 10px;
+}
+
+.filter {
+  display: flex;
+  padding: 18px 8px;
 }

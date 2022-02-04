@@ -106,6 +106,10 @@ header {
   margin: auto;
 }
 
+.capitalized {
+  text-transform: capitalize;
+}
+
 /* animations */
 .fade-in {
   animation: fadein 1s;

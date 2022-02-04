@@ -10,28 +10,35 @@ export function Contacts(props) {
   }
 
   const renderContacts = (contactsList) => {
-    return contactsList.length
-      ? contactsList.filter(contact =>
-        !contactsFilter || contact.username.includes(contactsFilter)
-      ).map((contact, i) => {
+    let contactsListKeys = Object.keys(contactsList)
+    return contactsListKeys?.length
+      ? contactsListKeys.filter(key =>
+        !contactsFilter || contactsList[key].username.includes(contactsFilter)
+      ).map((key, i) => {
         return (
           <div
+            key={i}
             className={
-              `contact-card cursor-pointer ${i === props.selectedChat && "selected"}`
+              `contact-card cursor-pointer ${contactsList[key].username === props.selectedUsername && "selected"}`
             }
+            onClick={() => props.updateselectedUsernameCallback(contactsList[key].username)}
           >
             <div className="contact-img">
               <img className="user-img" src={userImg} alt="user-img.png" />
             </div>
             <div className="contact-info">
               <div className="contact-name">
-                <h3 className="user-name"><b>{contact.username}</b></h3>
+                <h3 className="user-name capitalized"><b>
+                  {contactsList[key].username !== props.username
+                    ? contactsList[key].username
+                    : "You"}
+                </b></h3>
               </div>
               <div className="contact-last-seen">
                 Connected
               </div>
               <div className="contact-last-msg">
-                {contact.messages[-1]}
+                {contactsList[key]?.messages[contactsList[key]?.messages?.length]}
               </div>
             </div>
           </div>
