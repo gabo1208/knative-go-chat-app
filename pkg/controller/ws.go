@@ -31,20 +31,15 @@ func (manager *clientManager) start() {
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
-				delete(manager.usernames, manager.clients[conn])
+				delete(manager.usernames, conn.username)
 				delete(manager.clients, conn)
 			}
 		case message := <-manager.broadcast:
-			log.Printf("Broadasting to %d clients: %+v", len(manager.clients), message)
-			for conn := range manager.clients {
-				log.Printf("Broadasting message to client %s", conn.id)
-				select {
-				case conn.send <- message:
-				default:
-					log.Print("closing")
-					close(conn.send)
-					delete(manager.usernames, manager.clients[conn])
-					delete(manager.clients, conn)
+			log.Printf("Broadasting to %d clients: %+v", len(manager.usernames), message)
+			for _, client := range manager.usernames {
+				if client.registered {
+					log.Printf("Broadasting message to client %s", client.id)
+					client.SendCE(message.(*cloudevents.Event), false)
 				}
 			}
 		}
@@ -59,6 +54,7 @@ func (manager *clientManager) send(message interface{}) {
 
 type client struct {
 	id, username string
+	registered   bool
 	socket       *websocket.Conn
 	send         chan interface{}
 }
@@ -66,6 +62,13 @@ type client struct {
 func (c *client) write() {
 	defer func() {
 		manager.unregister <- c
+		c.SendCE(
+			c.createCE(
+				UserDisconnected,
+				cloudevents.TextPlain,
+				c.username,
+			),
+			true)
 		c.socket.Close()
 	}()
 
@@ -81,33 +84,43 @@ func (c *client) write() {
 			log.Print(err)
 		}
 
-		if username, ok := msg["username"]; ok {
-			usr := username.(string)
+		if val, ok := msg["username"]; ok {
+			username := val.(string)
 			log.Printf("First message from client %s updating username", c.id)
-			_, exists := manager.usernames[usr]
+			_, exists := manager.usernames[username]
 			if exists {
 				websocket.Message.Send(c.socket, "error: username already exists")
+				continue
 			}
 
-			val, ok := manager.clients[c]
+			_, ok := manager.clients[c]
 			if !ok {
 				websocket.Message.Send(c.socket, "error: user does not have a valid connection")
 				return
 			}
 
-			delete(manager.usernames, val)
-			manager.usernames[usr] = c
-			c.username = usr
-			//c.SendCE(NewUserConnected, cloudevents.TextPlain, message, true)
 			c.SendCE(
-				NewUserConnected,
-				cloudevents.ApplicationJSON,
-				map[string]interface{}{
-					"username":       usr,
-					"connectedUsers": GetUsernames(manager.usernames),
-				},
-				false,
-			)
+				c.createCE(
+					FirstUserConnection,
+					cloudevents.ApplicationJSON,
+					map[string]interface{}{
+						"username":       username,
+						"connectedUsers": GetUsernames(manager.usernames),
+					},
+				),
+				false)
+
+			delete(manager.usernames, c.id)
+			manager.usernames[username] = c
+			c.username = username
+			c.registered = true
+			c.SendCE(
+				c.createCE(
+					NewUserConnected,
+					cloudevents.TextPlain,
+					username,
+				),
+				true)
 		} else {
 			websocket.JSON.Send(
 				manager.usernames[msg["to"].(string)].socket,
@@ -145,8 +158,10 @@ func (c *Controller) WSHandler(ws *websocket.Conn) {
 
 func GetUsernames(usernamesMap map[string]*client) []string {
 	keys := make([]string, 0, len(usernamesMap))
-	for k := range usernamesMap {
-		keys = append(keys, k)
+	for k, client := range usernamesMap {
+		if client != nil && client.registered {
+			keys = append(keys, k)
+		}
 	}
 
 	return keys

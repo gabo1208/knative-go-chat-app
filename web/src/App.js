@@ -1,70 +1,68 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React from 'react'
 import './App.css'
 import { Dashboard } from './components/dashboard/Dashboard'
 import userImg from './static/img/user.png'
-import { DetectSmallScreenWidth, NewUserConnected, UserDisconnected } from './utils/Helper'
+import { FirstUserConnection, NewUserConnected, UserDisconnected } from './utils/Helper'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
 var sock
 
-function App() {
-  const [appState, setAppState] = useState({
-    menuBarClass: "change",
-    username: "",
-    open: false,
-    selectedUsername: "",
-    connectedUsers: {}
-    // This while I change to typescript
-    // userModel: {username: string, messages: [{content: string, mine: bool}]}
-  })
+export default class App extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      menuBarClass: "change",
+      username: "",
+      open: false,
+      selectedUsername: "",
+      connectedUsers: {},
+      // This while I change to typescript
+      // userModel: {username: string, messages: [{content: string, mine: bool}]}
+      width: 0
+    }
+    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+  }
 
-  const usernameCallback = useCallback(username => {
+  usernameCallback = (username) => {
     if (username !== "" && sock) {
       console.log("sending message to sock")
       sock.send(JSON.stringify({ username: username.toLowerCase().trim() }))
     }
-  }, [])
-
-  const updateselectedUsernameCallback = useCallback(selectedUsername => {
-    setAppState({ ...appState, selectedUsername })
-  }, [setAppState, appState])
-
-  const updateChatMessagesCallback = useCallback(message => {
-    if (message !== "" && message.length < 257) {
-      let to = appState.connectedUsers[appState.selectedUsername].username
-      console.log("sending message to sock")
-      // update own messages
-      appState.connectedUsers[appState.selectedUsername].messages.push({ content: message, mine: true })
-      if (to === appState.username) {
-        appState.connectedUsers[appState.selectedUsername].messages.push({ content: message })
-      } else {
-        // send message to the other user
-        sock.send(JSON.stringify({ message, to }))
-      }
-
-      setAppState({ ...appState })
-    }
-  }, [appState])
-
-  const handleMenuClick = () => {
-    setAppState({ ...appState, menuBarClass: getNextChatClass() })
   }
 
-  const getNextChatClass = () => {
+  updateselectedUsernameCallback = (selectedUsername) => {
+    this.setState(state => ({ ...state, selectedUsername }))
+  }
+
+  updateChatMessagesCallback = (message) => {
+    if (message !== "" && message.length < 257) {
+      let to = this.state.selectedUsername
+      console.log("sending message to sock")
+      // update own messages
+      this.state.connectedUsers[to].messages.push({ content: message, mine: true })
+      this.setState(state => ({ ...state }), () => sock.send(JSON.stringify({ message, to })))
+    }
+  }
+
+  handleMenuClick() {
+    this.setState(state => ({ ...state, menuBarClass: this.getNextChatClass() }))
+  }
+
+  getNextChatClass() {
     let menuClass = ""
-    if (appState.menuBarClass === "" || !appState.username) {
+    if (this.state.menuBarClass === "" || !this.state.username) {
       menuClass = "change"
     }
 
     return menuClass
   }
 
-  const renderAppMenu = () => (
-    <div
-      className={`app-container ${appState.menuBarClass}`}
-      onClick={handleMenuClick}
+  renderAppMenu() {
+    return <div
+      className={`app-container ${this.state.menuBarClass}`}
+      onClick={this.handleMenuClick}
     >
-      <div className={`container ${appState.username ? "cursor-pointer" : "blocked"}`}>
+      <div className={`container ${this.state.username ? "cursor-pointer" : "blocked"}`}>
         <div className="bar1"></div>
         <div className="bar2"></div>
         <div className="bar3"></div>
@@ -72,24 +70,27 @@ function App() {
       <img className="header-img" alt="user-img.png" src={userImg} />
       <div className="app-title">What'sUp</div>
     </div>
-  )
+  }
 
-  const renderDesktopHeader = () => (
-    <>
+  renderDesktopHeader() {
+    return <>
       <div className="side-bar-header">
-        {renderAppMenu()}
+        {this.renderAppMenu()}
       </div>
       <div className="chat-header"></div>
     </>
-  )
+  }
 
-  const renderMobileHeader = () => (
+  renderMobileHeader() {
     <div className="mobile-chat-header">
-      {renderAppMenu()}
+      {this.renderAppMenu()}
     </div>
-  )
+  }
 
-  useEffect(() => {
+  componentDidMount() {
+    this.updateWindowDimensions();
+    window.addEventListener('resize', this.updateWindowDimensions);
+
     if (sock) {
       return
     }
@@ -118,62 +119,78 @@ function App() {
       if (ev.type) {
         onCloudEvent(ev)
       } else {
-        appState.connectedUsers[ev.from].messages.push({ content: ev.message })
-        setAppState({ ...appState })
+        this.state.connectedUsers[ev.from].messages.push({ content: ev.message })
+        this.setState(state => ({ ...state }))
       }
     }
 
-    const showError = () => (this.setState({ open: !appState.open }))
+    const showError = () => (this.setState(state => ({ ...state, open: !state.open })))
 
     const onCloudEvent = (event) => {
+      console.log(event)
       switch (event.type) {
-        case NewUserConnected:
-          setAppState({
-            ...appState,
+        case FirstUserConnection:
+          this.setState(state => ({
+            ...state,
             menuBarClass: '',
             username: event.data.username,
             connectedUsers: {
               ...event.data.connectedUsers.reduce((acc, username) => {
-                acc[username] = { username, messages: [] }
+                acc[username] = { messages: [] }
                 return acc
               }, {})
             }
-          })
+          }))
+          break
+        case NewUserConnected:
+          this.setState(state => ({
+            ...state,
+            menuBarClass: '',
+            connectedUsers: {
+              [event.data]: { messages: [] },
+              ...state.connectedUsers
+            }
+          }))
           break
         case UserDisconnected:
-          delete appState.connectedUsers[event.data.username]
-          setAppState({
-            ...appState,
-            connectedUsers: { ...appState.connectedUsers }
+          this.setState(state => {
+            delete state.connectedUsers[event.data]
+            return state
           })
           break
         default:
-          console.log("error unnexpected event")
+          console.log("error unnexpected event", event)
           break
       }
     }
-  })
+  }
 
-  return (
-    <div className="App">
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateWindowDimensions);
+  }
+
+  updateWindowDimensions() {
+    this.setState({ width: window.innerWidth });
+  }
+
+  render() {
+    return <div className="App">
       <header>
         <div className="header-container fade-in">
-          {DetectSmallScreenWidth()
-            ? renderMobileHeader()
-            : renderDesktopHeader()}
+          {this.state.width < 767
+            ? this.renderMobileHeader()
+            : this.renderDesktopHeader()}
         </div>
       </header >
       <Dashboard
-        menuBarStatus={appState.menuBarClass !== ""}
-        username={appState.username}
-        selectedUsername={appState.selectedUsername}
-        connectedUsers={appState.connectedUsers}
-        usernameCallback={usernameCallback}
-        updateChatMessagesCallback={updateChatMessagesCallback}
-        updateselectedUsernameCallback={updateselectedUsernameCallback}
+        menuBarStatus={this.state.menuBarClass !== ""}
+        username={this.state.username}
+        selectedUsername={this.state.selectedUsername}
+        connectedUsers={this.state.connectedUsers}
+        usernameCallback={this.usernameCallback}
+        updateChatMessagesCallback={this.updateChatMessagesCallback}
+        updateselectedUsernameCallback={this.updateselectedUsernameCallback}
       />
     </div >
-  )
+  }
 }
-
-export default App

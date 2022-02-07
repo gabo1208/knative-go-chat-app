@@ -43,17 +43,19 @@
   padding: 20px;
   margin-top: 5px;
   display: flex;
+  font-weight: 500;
 }
 
 .contact-message {
   background-color: white;
-  border-radius: 0 20px 20px;
+  border-radius: 0 14px 14px;
 }
 
 .user-message {
   background-color: #f9f8f8;
-  border-radius: 20px 0px 20px 20px;
+  border-radius: 14px 0px 14px 14px;
   align-self: flex-end;
+  background-color: #d3d3d3;
 }
 
 .chat-bubble .bubbles-bg {

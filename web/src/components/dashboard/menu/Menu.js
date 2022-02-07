@@ -36,7 +36,7 @@ export function Menu(props) {
                 onChange={usernameInputHandler}
                 value={username}
                 onKeyDown={handleUsernameInputKeyDown}
-                maxlength="32"
+                maxLength="32"
               />
             }
           </div>

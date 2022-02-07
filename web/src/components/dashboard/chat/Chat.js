@@ -33,15 +33,14 @@ export function Chat(props) {
       return "Wait for someone to come online and start chatting :)!"
     }
 
-    let userChatMsg = props.selectedChat?.username === props.username
+    let userChatMsg = props.selectedUsername === props.username
       ? "Here is a space where you can talk to yourself and 'no one' is going to jugde you!"
-      : `Start chatting with ${props.selectedChat?.username}!`
+      : `Start chatting with ${props.selectedUsername}!`
     return props.selectedChat ? userChatMsg
       : "Click on one of your contacts and start chatting!"
   }
 
   const renderMessages = () => {
-    console.log(props)
     return props.selectedChat?.messages?.map((message, i) => {
       return <div key={i} className={"fade-in " +
         (message.mine ? "user" : "contact") + "-message"
@@ -88,7 +87,7 @@ export function Chat(props) {
               value={messageInput}
               onChange={chatInputHandler}
               onKeyDown={handleChatInputKeyDown}
-              maxlength="256"
+              maxLength="256"
             />
           </div>
         </div>

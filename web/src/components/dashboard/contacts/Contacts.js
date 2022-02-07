@@ -13,15 +13,15 @@ export function Contacts(props) {
     let contactsListKeys = Object.keys(contactsList)
     return contactsListKeys?.length
       ? contactsListKeys.filter(key =>
-        !contactsFilter || contactsList[key].username.includes(contactsFilter)
+        !contactsFilter || key.includes(contactsFilter)
       ).map((key, i) => {
         return (
           <div
             key={i}
             className={
-              `contact-card cursor-pointer ${contactsList[key].username === props.selectedUsername && "selected"}`
+              `contact-card cursor-pointer ${key === props.selectedUsername && "selected"}`
             }
-            onClick={() => props.updateselectedUsernameCallback(contactsList[key].username)}
+            onClick={() => props.updateselectedUsernameCallback(key)}
           >
             <div className="contact-img">
               <img className="user-img" src={userImg} alt="user-img.png" />
@@ -29,8 +29,8 @@ export function Contacts(props) {
             <div className="contact-info">
               <div className="contact-name">
                 <h3 className="user-name capitalized"><b>
-                  {contactsList[key].username !== props.username
-                    ? contactsList[key].username
+                  {key !== props.username
+                    ? key
                     : "You"}
                 </b></h3>
               </div>
