@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import sendBtn from '../../../static/img/send-btn.png'
 import './Chat.css'
 
@@ -46,7 +46,7 @@ export function Chat(props) {
   }
 
   const renderMessages = () => {
-    if (props.selectedChat.messages.slice(-1)[0].viewed) {
+    if (props.selectedChat.messages?.slice(-1)[0].viewed) {
       scrollToBottom()
     }
 
@@ -65,7 +65,7 @@ export function Chat(props) {
       <div className="messages">
         <div className="messages-bubble">
           <div className="bubbles-bg">
-            {props.selectedChat?.messages.length
+            {props.selectedChat?.messages?.length
               ? renderMessages()
               : <div className="empty-chat">
                 <h3 className="chat-default-msg">{chatDefaultMsg()}</h3>

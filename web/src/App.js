@@ -147,7 +147,9 @@ export default class App extends React.Component {
             username: event.data.username || state.username,
             connectedUsers: {
               ...event.data.connectedUsers.reduce((acc, username) => {
-                acc[username] = { messages: state.connectedUsers[username] }
+                acc[username] = {
+                  messages: state.connectedUsers[username]?.messages || []
+                }
                 return acc
               }, {})
             }

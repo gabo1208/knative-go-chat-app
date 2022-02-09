@@ -38,7 +38,9 @@ export function Contacts(props) {
                 Connected
               </div>
               <div className="contact-last-msg">
-                {contactsList[key]?.messages[contactsList[key]?.messages?.length]}
+                {contactsList[key].messages?.length
+                  ? contactsList[key].messages[contactsList[key].messages.length - 1].content
+                  : "Start Chatting with " + key}
               </div>
             </div>
           </div>

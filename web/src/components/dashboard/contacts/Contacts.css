@@ -37,8 +37,19 @@
   width: 90px;
 }
 
-.contact-last-seen {
-  margin-top: -10px;
+.contact-last-seen, .contact-last-msg {
+  margin-top: -8px;
   font-size: 11px;
   color: gray;
+}
+
+.contact-last-msg {
+  margin-top: 1px;
+  color: black;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  width: 82%;
+  white-space: nowrap;
+  overflow: hidden;
+  display: block;
 }
