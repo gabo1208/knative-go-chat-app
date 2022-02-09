@@ -31,7 +31,7 @@ func (manager *clientManager) start() {
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
-				delete(manager.usernames, conn.username)
+				delete(manager.usernames, conn.id)
 				delete(manager.clients, conn)
 			}
 		case message := <-manager.broadcast:
@@ -59,16 +59,19 @@ type client struct {
 	send         chan interface{}
 }
 
-func (c *client) write() {
+func (c *client) handleWSConnection() {
 	defer func() {
 		manager.unregister <- c
-		c.SendCE(
-			c.createCE(
-				UserDisconnected,
-				cloudevents.TextPlain,
-				c.username,
-			),
-			true)
+		if c.registered {
+			c.SendCE(
+				c.createCE(
+					UserDisconnected,
+					cloudevents.TextPlain,
+					c.username,
+				),
+				true)
+		}
+		c.registered = false
 		c.socket.Close()
 	}()
 
@@ -84,10 +87,18 @@ func (c *client) write() {
 			log.Print(err)
 		}
 
+		log.Printf("receiving %s", msg)
+
 		if val, ok := msg["username"]; ok {
 			username := val.(string)
 
 			if reconnecting, ok := msg["reconnecting"]; ok && reconnecting.(bool) {
+				log.Printf("reconnecting %s", username)
+				if oldClient, ok := manager.usernames[username]; !ok || oldClient == nil {
+					log.Println("failed to reconnect")
+					return
+				}
+
 				c.SendCE(
 					c.createCE(
 						UserReconnected,
@@ -97,51 +108,43 @@ func (c *client) write() {
 						},
 					),
 					false)
-			} else {
-			log.Printf("First message from client %s updating username", c.id)
-			_, exists := manager.usernames[username]
-			if exists {
-				websocket.Message.Send(c.socket, "error: username already exists")
-				continue
-			}
+				c.connectToClient(username)
+			} else if !c.registered {
+				log.Printf("First message from client %s updating username", c.id)
+				_, exists := manager.usernames[username]
+				if exists {
+					websocket.Message.Send(c.socket, "error: username already exists")
+					continue
+				}
 
-			_, ok := manager.clients[c]
-			if !ok {
-				websocket.Message.Send(c.socket, "error: user does not have a valid connection")
-				return
-			}
+				_, ok := manager.clients[c]
+				if !ok {
+					websocket.Message.Send(c.socket, "error: user does not have a valid connection")
+					return
+				}
 
-			c.SendCE(
-				c.createCE(
-					FirstUserConnection,
-					cloudevents.ApplicationJSON,
-					map[string]interface{}{
-						"username":       username,
-						"connectedUsers": GetUsernames(manager.usernames),
-					},
-				),
-				false)
-
-			delete(manager.usernames, c.id)
-			manager.usernames[username] = c
-			c.username = username
-			c.registered = true
-			c.SendCE(
-				c.createCE(
-					NewUserConnected,
-					cloudevents.TextPlain,
-					username,
-				),
-				true)
+				c.SendCE(
+					c.createCE(
+						FirstUserConnection,
+						cloudevents.ApplicationJSON,
+						map[string]interface{}{
+							"username":       username,
+							"connectedUsers": GetUsernames(manager.usernames),
+						},
+					),
+					false)
+				c.connectToClient(username)
 			}
 		} else {
-			websocket.JSON.Send(
-				manager.usernames[msg["to"].(string)].socket,
-				map[string]string{
-					"from":    c.username,
-					"message": msg["message"].(string),
-				},
-			)
+			if val, ok := manager.usernames[msg["to"].(string)]; ok && val != nil {
+				websocket.JSON.Send(
+					val.socket,
+					map[string]string{
+						"from":    c.username,
+						"message": msg["message"].(string),
+					},
+				)
+			}
 		}
 	}
 }
@@ -166,7 +169,7 @@ func (c *Controller) WSHandler(ws *websocket.Conn) {
 	}
 
 	manager.register <- client
-	client.write()
+	client.handleWSConnection()
 }
 
 func GetUsernames(usernamesMap map[string]*client) []string {
@@ -178,4 +181,18 @@ func GetUsernames(usernamesMap map[string]*client) []string {
 	}
 
 	return keys
+}
+
+func (c *client) connectToClient(username string) {
+	delete(manager.usernames, c.id)
+	manager.usernames[username] = c
+	c.username = username
+	c.registered = true
+	c.SendCE(
+		c.createCE(
+			NewUserConnected,
+			cloudevents.TextPlain,
+			username,
+		),
+		true)
 }

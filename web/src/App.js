@@ -9,9 +9,6 @@ import {
   UserDisconnected
 } from './utils/Helper'
 import ReconnectingWebSocket from 'reconnecting-websocket'
-
-var sock
-
 export default class App extends React.Component {
   constructor(props) {
     super(props)
@@ -19,6 +16,7 @@ export default class App extends React.Component {
       menuBarClass: "change",
       username: "",
       open: false,
+      sock: null,
       selectedUsername: "",
       connectedUsers: {},
       // This while I change to typescript
@@ -30,9 +28,9 @@ export default class App extends React.Component {
   }
 
   usernameCallback = (username) => {
-    if (username !== "" && sock) {
-      console.log("sending message to sock")
-      sock.send(JSON.stringify({ username: username.toLowerCase().trim() }))
+    if (username !== "" && this.state.sock) {
+      console.log("sending username to sock")
+      this.state.sock.send(JSON.stringify({ username: username.toLowerCase().trim() }))
     }
   }
 
@@ -47,7 +45,7 @@ export default class App extends React.Component {
       console.log("sending message to sock", msg)
       // update own messages
       this.state.connectedUsers[to].messages.push({ content: message, mine: true, viewed: true })
-      this.setState(state => ({ ...state }), () => sock.send(msg))
+      this.setState(state => ({ ...state }), () => this.state.sock.send(msg))
     }
   }
 
@@ -98,7 +96,7 @@ export default class App extends React.Component {
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
 
-    if (sock) {
+    if (this.state.sock) {
       return
     }
 
@@ -110,8 +108,7 @@ export default class App extends React.Component {
 
     console.log("WS URL: " + wsURL)
 
-    let ws = new ReconnectingWebSocket(wsURL)
-    sock = ws
+    let sock = new ReconnectingWebSocket(wsURL)
     sock.onopen = function () {
       console.log("connected to " + wsURL + " " + sock, this.state)
       if (this.state.username) {
@@ -134,6 +131,9 @@ export default class App extends React.Component {
       }
     }
 
+
+    this.setState(state => ({ ...state, sock }))
+
     const showError = () => (this.setState(state => ({ ...state, open: !state.open })))
 
     const onCloudEvent = (event) => {
@@ -146,9 +146,12 @@ export default class App extends React.Component {
             menuBarClass: '',
             username: event.data.username || state.username,
             connectedUsers: {
+              ...state.connectedUsers,
               ...event.data.connectedUsers.reduce((acc, username) => {
-                acc[username] = {
-                  messages: state.connectedUsers[username]?.messages || []
+                if (!state.connectedUsers[username]) {
+                  acc[username] = {
+                    messages: state.connectedUsers[username]?.messages || []
+                  }
                 }
                 return acc
               }, {})
