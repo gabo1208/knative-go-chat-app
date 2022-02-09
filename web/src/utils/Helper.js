@@ -1,10 +1,10 @@
 import { useLayoutEffect, useState } from 'react';
 
-export const NewUserConnected = "gabo1208.go-chat-client.NewUserConnected"
-export const FirstUserConnection = "gabo1208.go-chat-client.FirstUserConnection"
-export const UserReconnected = "gabo1208.go-chat-client.UserReconnected"
-export const UserDisconnected = "gabo1208.go-chat-client.UserDisconnected"
-export const ChatAppEventSource = "gabo1208.go-chat-client/source"
+export const NewUserConnected = "gabo1208.knative-go-chat-app.NewUserConnected"
+export const FirstUserConnection = "gabo1208.knative-go-chat-app.FirstUserConnection"
+export const UserReconnected = "gabo1208.knative-go-chat-app.UserReconnected"
+export const UserDisconnected = "gabo1208.knative-go-chat-app.UserDisconnected"
+export const ChatAppEventSource = "gabo1208.knative-go-chat-app/source"
 
 function useWindowWidth() {
   const [size, setWidth] = useState(0);

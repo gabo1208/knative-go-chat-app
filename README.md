@@ -24,31 +24,32 @@ or
 ```shell
 cd web
 npm run build
-cp -r build/* ../../cmd/go-chat-client/kodata/www/
+cp -r build/* ../../cmd/knative-go-chat-app/kodata/www/
 cd ..
 ```
 
 Now to run the ko image locally:
 ```shell
-KO_DATA_PATH=./cmd/go-chat-client/kodata go run cmd/go-chat-client/main.go
+KO_DATA_PATH=./cmd/knative-go-chat-app/kodata go run cmd/knative-go-chat-app/main.go
 ```
-or
+
+## Running on a Cluster
 
 Run using ko and kubernetes:
 Set your `KO_DOCKER_REPO` as stated [here](https://github.com/google/ko#choose-destination)
 then run:
 ```shell
-KO_DATA_PATH=./cmd/go-chat-client/kodata ko publish cmd/go-chat-client/main.go
+KO_DATA_PATH=./cmd/knative-go-chat-app/kodata ko publish -P cmd/knative-go-chat-app/main.go
 ```
 and the run:
 ```shell
-kubectl apply -f config/go-chat-client.yaml
+kubectl apply -f config/knative-go-chat-app.yaml
 ```
 
-### Cleanuo
+### Cleanup
 
 ```shell
-ko delete -f config/go-chat-client.yaml
+ko delete -f config/knative-go-chat-app.yaml
 ```
 
 ### Special Thanks

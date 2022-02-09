@@ -17,7 +17,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "precp4ko": "echo \"starting to copy frontend's build files\"",
-    "cp4ko": "cp -r ./build/* ../cmd/go-chat-client/kodata/www",
+    "cp4ko": "cp -r ./build/* ../cmd/knative-go-chat-app/kodata/www",
     "postcp4ko": "echo \"finished copying frontend's build files\"",
     "build4koinfo": "npm run precp4ko && npm run cp4ko && npm run postcp4ko",
     "build4ko": "react-scripts build && npm run build4koinfo"

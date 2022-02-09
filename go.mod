@@ -1,4 +1,4 @@
-module github.com/gabo1208/go-chat-client
+module github.com/gabo1208/knative-go-chat-app
 
 go 1.17
 

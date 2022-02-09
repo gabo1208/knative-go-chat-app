@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	ChatAppEventSource  = "gabo1208.go-chat-client/source"
-	FirstUserConnection = "gabo1208.go-chat-client.FirstUserConnection"
-	UserReconnected 		= "gabo1208.go-chat-client.UserReconnected"
-	NewUserConnected    = "gabo1208.go-chat-client.NewUserConnected"
-	UserDisconnected    = "gabo1208.go-chat-client.UserDisconnected"
+	ChatAppEventSource  = "gabo1208.knative-go-chat-app/source"
+	FirstUserConnection = "gabo1208.knative-go-chat-app.FirstUserConnection"
+	UserReconnected 		= "gabo1208.knative-go-chat-app.UserReconnected"
+	NewUserConnected    = "gabo1208.knative-go-chat-app.NewUserConnected"
+	UserDisconnected    = "gabo1208.knative-go-chat-app.UserDisconnected"
 )
 
 func (c *Controller) CeHandler(event cloudevents.Event) {
