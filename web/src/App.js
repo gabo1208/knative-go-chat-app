@@ -2,7 +2,12 @@ import React from 'react'
 import './App.css'
 import { Dashboard } from './components/dashboard/Dashboard'
 import userImg from './static/img/user.png'
-import { FirstUserConnection, NewUserConnected, UserDisconnected } from './utils/Helper'
+import {
+  FirstUserConnection,
+  NewUserConnected,
+  UserReconnected,
+  UserDisconnected
+} from './utils/Helper'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
 var sock
@@ -36,11 +41,12 @@ export default class App extends React.Component {
 
   updateChatMessagesCallback = (message) => {
     if (message !== "" && message.length < 257) {
-      let to = this.state.selectedUsername
-      console.log("sending message to sock")
+      let to = this.state?.selectedUsername
+      let msg = JSON.stringify({ message, to })
+      console.log("sending message to sock", msg)
       // update own messages
-      this.state.connectedUsers[to].messages.push({ content: message, mine: true })
-      this.setState(state => ({ ...state }), () => sock.send(JSON.stringify({ message, to })))
+      this.state.connectedUsers[to].messages.push({ content: message, mine: true, viewed: true })
+      this.setState(state => ({ ...state }), () => sock.send(msg))
     }
   }
 
@@ -104,9 +110,13 @@ export default class App extends React.Component {
     console.log("WS URL: " + wsURL)
 
     let ws = new ReconnectingWebSocket(wsURL)
+    let state = this.state
     sock = ws
     sock.onopen = function () {
-      console.log("connected to " + wsURL + " " + sock)
+      console.log("connected to " + wsURL + " " + sock, state)
+      if (state.username) {
+        sock.send(JSON.stringify({ username: state.username, reconnecting: true }))
+      }
     }
 
     sock.onclose = function (e) {
@@ -129,14 +139,15 @@ export default class App extends React.Component {
     const onCloudEvent = (event) => {
       console.log(event)
       switch (event.type) {
+        case UserReconnected:
         case FirstUserConnection:
           this.setState(state => ({
             ...state,
             menuBarClass: '',
-            username: event.data.username,
+            username: event.data.username || state.username,
             connectedUsers: {
               ...event.data.connectedUsers.reduce((acc, username) => {
-                acc[username] = { messages: [] }
+                acc[username] = { messages: state.connectedUsers[username] }
                 return acc
               }, {})
             }

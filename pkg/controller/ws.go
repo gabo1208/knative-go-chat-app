@@ -86,6 +86,18 @@ func (c *client) write() {
 
 		if val, ok := msg["username"]; ok {
 			username := val.(string)
+
+			if reconnecting, ok := msg["reconnecting"]; ok && reconnecting.(bool) {
+				c.SendCE(
+					c.createCE(
+						UserReconnected,
+						cloudevents.ApplicationJSON,
+						map[string]interface{}{
+							"connectedUsers": GetUsernames(manager.usernames),
+						},
+					),
+					false)
+			} else {
 			log.Printf("First message from client %s updating username", c.id)
 			_, exists := manager.usernames[username]
 			if exists {
@@ -121,6 +133,7 @@ func (c *client) write() {
 					username,
 				),
 				true)
+			}
 		} else {
 			websocket.JSON.Send(
 				manager.usernames[msg["to"].(string)].socket,

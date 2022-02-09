@@ -9,4 +9,4 @@ spec:
         autoscaling.knative.dev/maxScale: "1"
     spec:
       containers:
-        - image: ko://github.com/gabo1208/golang/knative/chat-client/cmd/go-chat-client
+        - image: docker.io/gabo1208/main.go-35c0a9e916ea33ecfa425b8c28b075f1

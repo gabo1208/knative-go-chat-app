@@ -1,9 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import sendBtn from '../../../static/img/send-btn.png'
 import './Chat.css'
 
 export function Chat(props) {
   const [messageInput, setMessageInput] = useState('')
+  const messagesEndRef = useRef(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   const chatInputHandler = (e) => {
     setMessageInput(e.target.value)
@@ -41,6 +46,10 @@ export function Chat(props) {
   }
 
   const renderMessages = () => {
+    if (props.selectedChat.messages.slice(-1)[0].viewed) {
+      scrollToBottom()
+    }
+
     return props.selectedChat?.messages?.map((message, i) => {
       return <div key={i} className={"fade-in " +
         (message.mine ? "user" : "contact") + "-message"
@@ -61,6 +70,7 @@ export function Chat(props) {
               : <div className="empty-chat">
                 <h3 className="chat-default-msg">{chatDefaultMsg()}</h3>
               </div>}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       </div>
