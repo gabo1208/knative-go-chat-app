@@ -26,6 +26,7 @@ export default class App extends React.Component {
       width: 0
     }
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+    this.handleMenuClick = this.handleMenuClick.bind(this)
   }
 
   usernameCallback = (username) => {
@@ -110,14 +111,13 @@ export default class App extends React.Component {
     console.log("WS URL: " + wsURL)
 
     let ws = new ReconnectingWebSocket(wsURL)
-    let state = this.state
     sock = ws
     sock.onopen = function () {
-      console.log("connected to " + wsURL + " " + sock, state)
-      if (state.username) {
-        sock.send(JSON.stringify({ username: state.username, reconnecting: true }))
+      console.log("connected to " + wsURL + " " + sock, this.state)
+      if (this.state.username) {
+        sock.send(JSON.stringify({ username: this.state.username, reconnecting: true }))
       }
-    }
+    }.bind(this)
 
     sock.onclose = function (e) {
       console.log("connection closed (" + e.code + ")")
