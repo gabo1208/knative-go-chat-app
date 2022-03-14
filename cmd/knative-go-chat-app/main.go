@@ -32,7 +32,7 @@ func main() {
 	c := controller.New(www)
 
 	t, err := cloudevents.NewHTTP(
-		cloudevents.WithPath("/ce"), // hack hack
+		cloudevents.WithPath("/ce"),
 		cloudevents.WithPort(env.Port),
 	)
 	if err != nil {

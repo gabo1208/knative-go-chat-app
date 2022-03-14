@@ -6,7 +6,7 @@ spec:
   template:
     metadata:
       annotations:
-        autoscaling.knative.dev/maxScale: "1"
+        autoscaling.knative.dev/minScale: "1"
     spec:
       containers:
         - image: ko://github.com/gabo1208/knative-go-chat-app/cmd/knative-go-chat-app
