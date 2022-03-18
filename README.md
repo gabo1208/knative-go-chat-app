@@ -38,14 +38,19 @@ KO_DATA_PATH=./cmd/knative-go-chat-app/kodata go run cmd/knative-go-chat-app/mai
 Run using ko and kubernetes:
 Set your `KO_DOCKER_REPO` as stated [here](https://github.com/google/ko#choose-destination)
 then run:
+simply run:
 ```shell
-KO_DATA_PATH=./cmd/knative-go-chat-app/kodata ko publish -P cmd/knative-go-chat-app/main.go
+ko apply -f config/knative-go-chat-app.yaml
 ```
-and the run:
+To build your own image do:
+```shell
+KO_DATA_PATH=./cmd/knative-go-chat-app/kodata ko publish -B ./cmd/knative-go-chat-app/main.go
+```
+Then modify the `image URI` in the `config/knative-go-chat-app.yaml` file 
+and finally run:
 ```shell
 kubectl apply -f config/knative-go-chat-app.yaml
 ```
-
 ### Cleanup
 
 ```shell
