@@ -1,0 +1,28 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knative-go-chat-app
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "1"
+    spec:
+      containers:
+        - image: ko://github.com/gabo1208/knative-go-chat-app/cmd/knative-go-chat-app
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knative-go-chat-app
+  namespace: chat-demo
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "1"
+    spec:
+      containers:
+        - image: ko://github.com/gabo1208/knative-go-chat-app/cmd/knative-go-chat-app
