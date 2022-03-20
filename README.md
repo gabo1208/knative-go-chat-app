@@ -6,6 +6,9 @@ Websocket based CloudEvents chat app.
 
 //TODO
 
+## Pre-requisite
+Install Knative Eventing and Serving from the [Docs](https://knative.dev/docs/install/quickstart-install/)
+
 ## Running Locally
 
 Test the frontend only:
