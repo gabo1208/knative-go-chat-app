@@ -1,17 +1,24 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"log"
+	"net/http"
 
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
+	obsclient "github.com/cloudevents/sdk-go/observability/opencensus/v2/client"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	ceclient "github.com/cloudevents/sdk-go/v2/client"
+	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
+	"knative.dev/eventing/pkg/kncloudevents"
 )
 
 var (
-	manager clientManager
+	manager  clientManager
+	ceClient ceclient.Client
 )
 
 type clientManager struct {
@@ -23,17 +30,38 @@ type clientManager struct {
 }
 
 func (manager *clientManager) start() {
+	// initialize client to send CloudEvents via HTTP
+	var err error
+	ceClient, err = obsclient.NewClientHTTP(
+		[]cehttp.Option{cehttp.WithIsRetriableFunc(
+			func(statusCode int) bool {
+				retry, _ := kncloudevents.SelectiveRetry(
+					context.TODO(),
+					&http.Response{StatusCode: statusCode},
+					nil,
+				)
+				return retry
+			})}, nil)
+	if err != nil {
+		log.Printf("Error creating ceclient %s", err)
+		return
+	}
+
+	// Start waiting for messages from the different channels
 	for {
 		select {
+		// client connected
 		case conn := <-manager.register:
 			manager.clients[conn] = conn.id
 			manager.usernames[conn.id] = conn
+		// client disconnected
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
 				delete(manager.usernames, conn.id)
 				delete(manager.clients, conn)
 			}
+		// msg to be broadcasted locally in this chat app instance
 		case message := <-manager.broadcast:
 			log.Printf("Broadasting to %d clients: %+v", len(manager.usernames), message)
 			for _, client := range manager.usernames {
@@ -52,6 +80,7 @@ func (manager *clientManager) send(message interface{}) {
 	}
 }
 
+// Client type for the chat
 type client struct {
 	id, username string
 	registered   bool
@@ -59,6 +88,7 @@ type client struct {
 	send         chan interface{}
 }
 
+// Handle a new websocket connection
 func (c *client) handleWSConnection() {
 	defer func() {
 		manager.unregister <- c
@@ -75,6 +105,7 @@ func (c *client) handleWSConnection() {
 		c.socket.Close()
 	}()
 
+	// listen to messages in the new socket
 	buff := make([]byte, 512)
 	for {
 		n, err := c.socket.Read(buff)
@@ -86,12 +117,11 @@ func (c *client) handleWSConnection() {
 		if err := json.Unmarshal(buff[:n], &msg); err != nil {
 			log.Print(err)
 		}
-
 		log.Printf("receiving %s", msg)
 
+		// Check msg type TODO: Going to refactor to ce format
 		if val, ok := msg["username"]; ok {
 			username := val.(string)
-
 			if reconnecting, ok := msg["reconnecting"]; ok && reconnecting.(bool) {
 				log.Printf("reconnecting %s", username)
 				if oldClient, ok := manager.usernames[username]; !ok || oldClient == nil {
@@ -149,6 +179,8 @@ func (c *client) handleWSConnection() {
 	}
 }
 
+// Initialize client manager, init runs only once when the
+// controller package is initialized
 func init() {
 	manager = clientManager{
 		broadcast:  make(chan interface{}, 100),
@@ -183,6 +215,8 @@ func GetUsernames(usernamesMap map[string]*client) []string {
 	return keys
 }
 
+// Clients without username get its connection id assigned, here
+// this is getting cleaned for the selected unique username
 func (c *client) connectToClient(username string) {
 	delete(manager.usernames, c.id)
 	manager.usernames[username] = c
