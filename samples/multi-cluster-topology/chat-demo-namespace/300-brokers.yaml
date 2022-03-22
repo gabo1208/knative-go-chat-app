@@ -10,11 +10,3 @@ spec:
     apiVersion: rabbitmq.com/v1beta1
     kind: RabbitmqCluster
     name: rabbitmq
-  delivery:
-    deadLetterSink:
-      ref:
-        apiVersion: serving.knative.dev/v1
-        kind: Service
-        name: sockeye
-        namespace: chat-demo
-    retry: 5
