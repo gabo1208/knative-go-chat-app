@@ -16,5 +16,5 @@ kubectl apply -f https://github.com/rabbitmq/messaging-topology-operator/release
 ## Run samples
 To run this samples simply run:
 ```bash
-ko apply -f samples/$SAMPLE_NAME
+ko apply -Rf samples/$SAMPLE_NAME
 ```
