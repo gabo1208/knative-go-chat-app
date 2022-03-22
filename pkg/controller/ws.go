@@ -46,7 +46,7 @@ func (manager *clientManager) start() {
 			for _, client := range manager.usernames {
 				if client.registered {
 					log.Printf("Broadasting message to client %s", client.id)
-					client.SendCE(message.(*cloudevents.Event), false)
+					client.SendCE(message.(*cloudevents.Event), false, false)
 				}
 			}
 		}
@@ -78,6 +78,7 @@ func (c *client) handleWSConnection() {
 					cloudevents.TextPlain,
 					c.username,
 				),
+				true,
 				true)
 		}
 		c.registered = false
@@ -98,7 +99,7 @@ func (c *client) handleWSConnection() {
 			continue
 		}
 		log.Printf("receiving %s", msg)
-		err = c.processWSMessage(msg)
+		err = c.processWSMessage(msg, true)
 		if err != nil {
 			log.Print(err)
 			return
@@ -155,11 +156,12 @@ func (c *client) connectToClient(username string) {
 			cloudevents.TextPlain,
 			username,
 		),
+		true,
 		true)
 }
 
-func (c *client) processWSMessage(msg map[string]interface{}) error {
-	// Check msg type TODO: Going to refactor to ce format
+func (c *client) processWSMessage(msg map[string]interface{}, local bool) error {
+	// Check msg type TODO: Refactor ws comunication to CE format
 	if val, ok := msg["username"]; ok {
 		username := val.(string)
 		if reconnecting, ok := msg["reconnecting"]; ok && reconnecting.(bool) {
@@ -176,6 +178,7 @@ func (c *client) processWSMessage(msg map[string]interface{}) error {
 						"connectedUsers": GetUsernames(manager.usernames),
 					},
 				),
+				false,
 				false)
 			c.connectToClient(username)
 		} else if !c.registered {
@@ -201,6 +204,7 @@ func (c *client) processWSMessage(msg map[string]interface{}) error {
 						"connectedUsers": GetUsernames(manager.usernames),
 					},
 				),
+				false,
 				false)
 			c.connectToClient(username)
 		}
@@ -213,6 +217,15 @@ func (c *client) processWSMessage(msg map[string]interface{}) error {
 					"message": msg["message"].(string),
 				},
 			)
+		} else if !ok && local {
+			c.SendCE(
+				c.createCE(
+					FirstUserConnection,
+					cloudevents.ApplicationJSON,
+					msg,
+				),
+				false,
+				false)
 		}
 	}
 

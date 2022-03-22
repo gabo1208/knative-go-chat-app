@@ -1,0 +1,37 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: sockeye-trigger
+  namespace: chat-demo
+  annotations:
+    # Value must be between 1 and 1000
+    # A value of 1 RabbitMQ Trigger behaves as a FIFO queue
+    # Values above 1 break message ordering guarantees and can be seen as more performance oriented.
+    rabbitmq.eventing.knative.dev/prefetchCount: "10"
+spec:
+  broker: chat-broker
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: sockeye
+      namespace: chat-demo
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: cluster-b-trigger
+  namespace: chat-demo
+  annotations:
+    # Value must be between 1 and 1000
+    # A value of 1 RabbitMQ Trigger behaves as a FIFO queue
+    # Values above 1 break message ordering guarantees and can be seen as more performance oriented.
+    rabbitmq.eventing.knative.dev/prefetchCount: "10"
+spec:
+  broker: chat-broker
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: knative-go-chat-app
+      namespace: chat-demo

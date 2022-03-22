@@ -34,7 +34,7 @@ func (c *Controller) CeHandler(event cloudevents.Event) {
 		manager.broadcast <- &event
 	} else if user, ok := manager.usernames[value.(string)]; ok {
 		log.Printf("receiving %s", msg)
-		err := user.processWSMessage(msg)
+		err := user.processWSMessage(msg, false)
 		if err != nil {
 			log.Print(err)
 			return
@@ -55,9 +55,13 @@ func (c *client) createCE(ceType, contentType string, data interface{}) *cloudev
 	return &cloudEvent
 }
 
-func (c *client) SendCE(ce *cloudevents.Event, globalEvent bool) {
+func (c *client) SendCE(ce *cloudevents.Event, globalEvent, local bool) {
 	if globalEvent {
-		manager.broadcast <- ce
+		// If the msg should be sent to all users in the local instance
+		if !local {
+			manager.broadcast <- ce
+		}
+		// Send the message to all the registered brokers
 		otherClusters := os.Getenv("CLUSTERS_BROKERS_URI")
 		for _, uri := range strings.Split(otherClusters, ",") {
 			log.Printf("sending to %s", uri)
