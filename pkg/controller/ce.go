@@ -2,20 +2,15 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/cloudevents/sdk-go/v2/protocol"
-	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
-
-	"knative.dev/eventing/pkg/kncloudevents"
 )
 
 const (
@@ -28,7 +23,23 @@ const (
 
 func (c *Controller) CeHandler(event cloudevents.Event) {
 	fmt.Println("got", event.String())
-	manager.broadcast <- &event
+
+	var msg map[string]interface{}
+	if err := json.Unmarshal(event.Data(), &msg); err != nil {
+		log.Print(err)
+		return
+	}
+
+	if value, ok := msg["to"]; !ok {
+		manager.broadcast <- &event
+	} else if user, ok := manager.usernames[value.(string)]; ok {
+		log.Printf("receiving %s", msg)
+		err := user.processWSMessage(msg)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}
 }
 
 func (c *client) createCE(ceType, contentType string, data interface{}) *cloudevents.Event {
@@ -49,32 +60,15 @@ func (c *client) SendCE(ce *cloudevents.Event, globalEvent bool) {
 		manager.broadcast <- ce
 		otherClusters := os.Getenv("CLUSTERS_BROKERS_URI")
 		for _, uri := range strings.Split(otherClusters, ",") {
-			ctx := cloudevents.ContextWithTarget(context.TODO(), uri)
-			cloudevents.ContextWithRetriesExponentialBackoff(ctx, time.Duration(500), 5)
-
-			response, result := ceClient.Request(ctx, *ce)
-			if !isSuccess(ctx, result) {
-				log.Printf("Failed to deliver to %q %s", uri, response)
-				return
+			log.Printf("sending to %s", uri)
+			ctx := cloudevents.ContextWithTarget(context.Background(), uri)
+			if result := ceClient.Send(ctx, *ce); cloudevents.IsUndelivered(result) {
+				log.Fatalf("failed to send, %v", result)
+			} else {
+				log.Printf("res %s", result)
 			}
 		}
 	} else {
 		websocket.JSON.Send(c.socket, *ce)
 	}
-}
-
-func isSuccess(ctx context.Context, result protocol.Result) bool {
-	var retriesResult *cehttp.RetriesResult
-	if cloudevents.ResultAs(result, &retriesResult) {
-		var httpResult *cehttp.Result
-		if cloudevents.ResultAs(retriesResult.Result, &httpResult) {
-			retry, _ := kncloudevents.SelectiveRetry(ctx, &http.Response{StatusCode: httpResult.StatusCode}, nil)
-			return !retry
-		}
-		log.Printf("Invalid result type, not HTTP Result: %v", retriesResult.Result)
-		return false
-	}
-
-	log.Printf("Invalid result type, not RetriesResult")
-	return false
 }

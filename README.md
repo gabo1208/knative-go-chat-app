@@ -19,12 +19,12 @@ npm start
 Check on [React's README.md](./web/README.md) for more detailed info
 
 Build the frontend:
-```shell
+```bash
 cd web
 npm run build4ko
 ```
 or
-```shell
+```bash
 cd web
 npm run build
 cp -r build/* ../../cmd/knative-go-chat-app/kodata/www/
@@ -32,7 +32,7 @@ cd ..
 ```
 
 Now to run the ko image locally:
-```shell
+```bash
 KO_DATA_PATH=./cmd/knative-go-chat-app/kodata go run cmd/knative-go-chat-app/main.go
 ```
 
@@ -42,21 +42,21 @@ Run using ko and kubernetes:
 Set your `KO_DOCKER_REPO` as stated [here](https://github.com/google/ko#choose-destination)
 then run:
 simply run:
-```shell
+```bash
 ko apply -f config/knative-go-chat-app.yaml
 ```
 To build your own image do:
-```shell
+```bash
 KO_DATA_PATH=./cmd/knative-go-chat-app/kodata ko publish -B ./cmd/knative-go-chat-app/main.go
 ```
 Then modify the `image URI` in the `config/knative-go-chat-app.yaml` file 
 and finally run:
-```shell
+```bash
 kubectl apply -f config/knative-go-chat-app.yaml
 ```
 ### Cleanup
 
-```shell
+```bash
 ko delete -f config/knative-go-chat-app.yaml
 ```
 

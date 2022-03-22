@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sync"
 
+	ceclient "github.com/cloudevents/sdk-go/v2/client"
 	"golang.org/x/net/websocket"
 )
 
@@ -26,4 +27,8 @@ func (c *Controller) Mux() *http.ServeMux {
 	})
 
 	return c.mux
+}
+
+func (c *Controller) SetCEClient(client ceclient.Client) {
+	ceClient = client
 }

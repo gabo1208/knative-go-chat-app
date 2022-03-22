@@ -54,6 +54,7 @@ func main() {
 		log.Fatalf("failed to create cloudevents client, %s", err.Error())
 	}
 
+	c.SetCEClient(ce)
 	log.Printf("Server starting on port %d\n", env.Port)
 	if err := ce.StartReceiver(context.Background(), c.CeHandler); err != nil {
 		log.Fatalf("failed to start cloudevent receiver, %s", err.Error())

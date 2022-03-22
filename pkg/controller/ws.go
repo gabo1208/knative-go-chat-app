@@ -1,19 +1,15 @@
 package controller
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"log"
-	"net/http"
 
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
-	obsclient "github.com/cloudevents/sdk-go/observability/opencensus/v2/client"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	ceclient "github.com/cloudevents/sdk-go/v2/client"
-	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
-	"knative.dev/eventing/pkg/kncloudevents"
 )
 
 var (
@@ -30,23 +26,6 @@ type clientManager struct {
 }
 
 func (manager *clientManager) start() {
-	// initialize client to send CloudEvents via HTTP
-	var err error
-	ceClient, err = obsclient.NewClientHTTP(
-		[]cehttp.Option{cehttp.WithIsRetriableFunc(
-			func(statusCode int) bool {
-				retry, _ := kncloudevents.SelectiveRetry(
-					context.TODO(),
-					&http.Response{StatusCode: statusCode},
-					nil,
-				)
-				return retry
-			})}, nil)
-	if err != nil {
-		log.Printf("Error creating ceclient %s", err)
-		return
-	}
-
 	// Start waiting for messages from the different channels
 	for {
 		select {
@@ -116,65 +95,13 @@ func (c *client) handleWSConnection() {
 		var msg map[string]interface{}
 		if err := json.Unmarshal(buff[:n], &msg); err != nil {
 			log.Print(err)
+			continue
 		}
 		log.Printf("receiving %s", msg)
-
-		// Check msg type TODO: Going to refactor to ce format
-		if val, ok := msg["username"]; ok {
-			username := val.(string)
-			if reconnecting, ok := msg["reconnecting"]; ok && reconnecting.(bool) {
-				log.Printf("reconnecting %s", username)
-				if oldClient, ok := manager.usernames[username]; !ok || oldClient == nil {
-					log.Println("failed to reconnect")
-					return
-				}
-
-				c.SendCE(
-					c.createCE(
-						UserReconnected,
-						cloudevents.ApplicationJSON,
-						map[string]interface{}{
-							"connectedUsers": GetUsernames(manager.usernames),
-						},
-					),
-					false)
-				c.connectToClient(username)
-			} else if !c.registered {
-				log.Printf("First message from client %s updating username", c.id)
-				_, exists := manager.usernames[username]
-				if exists {
-					websocket.Message.Send(c.socket, "error: username already exists")
-					continue
-				}
-
-				_, ok := manager.clients[c]
-				if !ok {
-					websocket.Message.Send(c.socket, "error: user does not have a valid connection")
-					return
-				}
-
-				c.SendCE(
-					c.createCE(
-						FirstUserConnection,
-						cloudevents.ApplicationJSON,
-						map[string]interface{}{
-							"username":       username,
-							"connectedUsers": GetUsernames(manager.usernames),
-						},
-					),
-					false)
-				c.connectToClient(username)
-			}
-		} else {
-			if val, ok := manager.usernames[msg["to"].(string)]; ok && val != nil {
-				websocket.JSON.Send(
-					val.socket,
-					map[string]string{
-						"from":    c.username,
-						"message": msg["message"].(string),
-					},
-				)
-			}
+		err = c.processWSMessage(msg)
+		if err != nil {
+			log.Print(err)
+			return
 		}
 	}
 }
@@ -229,4 +156,65 @@ func (c *client) connectToClient(username string) {
 			username,
 		),
 		true)
+}
+
+func (c *client) processWSMessage(msg map[string]interface{}) error {
+	// Check msg type TODO: Going to refactor to ce format
+	if val, ok := msg["username"]; ok {
+		username := val.(string)
+		if reconnecting, ok := msg["reconnecting"]; ok && reconnecting.(bool) {
+			log.Printf("reconnecting %s", username)
+			if oldClient, ok := manager.usernames[username]; !ok || oldClient == nil {
+				return errors.New("failed to reconnect")
+			}
+
+			c.SendCE(
+				c.createCE(
+					UserReconnected,
+					cloudevents.ApplicationJSON,
+					map[string]interface{}{
+						"connectedUsers": GetUsernames(manager.usernames),
+					},
+				),
+				false)
+			c.connectToClient(username)
+		} else if !c.registered {
+			log.Printf("First message from client %s updating username", c.id)
+			_, exists := manager.usernames[username]
+			if exists {
+				websocket.Message.Send(c.socket, "error: username already exists")
+				return nil
+			}
+
+			_, ok := manager.clients[c]
+			if !ok {
+				websocket.Message.Send(c.socket, "error: user does not have a valid connection")
+				return errors.New("error: user does not have a valid connection")
+			}
+
+			c.SendCE(
+				c.createCE(
+					FirstUserConnection,
+					cloudevents.ApplicationJSON,
+					map[string]interface{}{
+						"username":       username,
+						"connectedUsers": GetUsernames(manager.usernames),
+					},
+				),
+				false)
+			c.connectToClient(username)
+		}
+	} else {
+		if val, ok := manager.usernames[msg["to"].(string)]; ok && val != nil {
+			websocket.JSON.Send(
+				val.socket,
+				map[string]string{
+					"from":    c.username,
+					"message": msg["message"].(string),
+				},
+			)
+		}
+	}
+
+	return nil
 }
