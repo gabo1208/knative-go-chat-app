@@ -1,0 +1,58 @@
+2022/03/22 18:40:33 Getting external clusters usernames
+2022/03/22 18:40:33 sending GetUsers event to http://chat-broker-broker-ingress.default.svc.cluster.local
+2022/03/22 18:40:33 ce res 202: 
+2022/03/22 18:40:33 Server starting on port 8080
+2022/03/22 18:41:46 WS connection...
+2022/03/22 18:41:47 WS connection...
+2022/03/22 18:41:58 receiving map[username:gabo]
+2022/03/22 18:41:58 First message from client d688d7ca-27c4-4a2a-b9ae-03afd4a32c36 updating username
+2022/03/22 18:41:58 sending to http://chat-broker-broker-ingress.default.svc.cluster.local
+2022/03/22 18:41:58 Broadcasting to 2 clients: Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.NewUserConnected
+  source: gabo1208.knative-go-chat-app/source
+  id: 34d832f6-08a5-436f-b951-a3ec2436b869
+  datacontenttype: text/plain
+Data,
+  gabo
+2022/03/22 18:41:58 Broadcasting message to client d688d7ca-27c4-4a2a-b9ae-03afd4a32c36
+2022/03/22 18:41:58 ce res 202: 
+2022/03/22 18:42:04 receiving map[username:knative]
+2022/03/22 18:42:04 First message from client b308c6f8-78cc-48f6-9acb-e665dba5b962 updating username
+2022/03/22 18:42:04 sending to http://chat-broker-broker-ingress.default.svc.cluster.local
+2022/03/22 18:42:04 Broadcasting to 2 clients: Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.NewUserConnected
+  source: gabo1208.knative-go-chat-app/source
+  id: 53885a6e-8dd9-474b-a6fa-ea328c473189
+  datacontenttype: text/plain
+Data,
+  knative
+2022/03/22 18:42:04 Broadcasting message to client b308c6f8-78cc-48f6-9acb-e665dba5b962
+2022/03/22 18:42:04 Broadcasting message to client d688d7ca-27c4-4a2a-b9ae-03afd4a32c36
+2022/03/22 18:42:04 ce res 202: 
+2022/03/22 18:42:11 receiving map[message:Hello to:gabo]
+2022/03/22 18:42:17 receiving map[message:Hello Knative to:knative]
+2022/03/22 18:42:22 receiving map[message:Hi myself! to:gabo]
+got Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.GetUsers
+  source: gabo1208.knative-go-chat-app/source
+  id: e6d04014-c82a-474f-ad37-06c5a3d326d5
+  time: 2022-03-22T18:43:09.0716063Z
+  datacontenttype: text/plain
+Data,
+  http://chat-broker-broker-ingress.default.svc.cluster.local
+
+2022/03/22 18:43:09 invalid character 'h' looking for beginning of value
+got Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.NewUserConnected
+  source: gabo1208.knative-go-chat-app/source
+  id: b593e1b1-c0e7-4f41-9bdc-a0af3b6e5dda
+  time: 2022-03-22T18:43:31.4153899Z
+  datacontenttype: text/plain
+Data,
+  test
+
+2022/03/22 18:43:31 invalid character 'e' in literal true (expecting 'r')

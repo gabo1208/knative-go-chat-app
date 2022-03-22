@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	ceclient "github.com/cloudevents/sdk-go/v2/client"
+	"github.com/cloudevents/sdk-go/v2/event"
 )
 
 var (
@@ -42,10 +45,10 @@ func (manager *clientManager) start() {
 			}
 		// msg to be broadcasted locally in this chat app instance
 		case message := <-manager.broadcast:
-			log.Printf("Broadasting to %d clients: %+v", len(manager.usernames), message)
+			log.Printf("Broadcasting to %d clients: %+v", len(manager.usernames), message)
 			for _, client := range manager.usernames {
 				if client.registered {
-					log.Printf("Broadasting message to client %s", client.id)
+					log.Printf("Broadcasting message to client %s", client.id)
 					client.SendCE(message.(*cloudevents.Event), false, false)
 				}
 			}
@@ -73,7 +76,7 @@ func (c *client) handleWSConnection() {
 		manager.unregister <- c
 		if c.registered {
 			c.SendCE(
-				c.createCE(
+				createCE(
 					UserDisconnected,
 					cloudevents.TextPlain,
 					c.username,
@@ -132,6 +135,31 @@ func (c *Controller) WSHandler(ws *websocket.Conn) {
 	client.handleWSConnection()
 }
 
+func (m *clientManager) getExternalUsernames() {
+	ce := createCE(GetUsers, cloudevents.TextPlain, os.Getenv("OWN_BROKER_URI"))
+	otherClusters := os.Getenv("CLUSTERS_BROKERS_URI")
+	for _, uri := range strings.Split(otherClusters, ",") {
+		log.Printf("sending GetUsers event to %s", uri)
+		SendCEViaHTTP(ce, uri)
+	}
+}
+
+func AppendUsernames(ce *event.Event, manager *clientManager) {
+	var usernames []string
+	if err := json.Unmarshal(ce.Data(), &usernames); err != nil {
+		log.Print(err)
+		return
+	}
+
+	for _, username := range usernames {
+		manager.usernames[username] = &client{
+			id:         uuid.New().String(),
+			username:   username,
+			registered: true,
+		}
+	}
+}
+
 func GetUsernames(usernamesMap map[string]*client) []string {
 	keys := make([]string, 0, len(usernamesMap))
 	for k, client := range usernamesMap {
@@ -151,7 +179,7 @@ func (c *client) connectToClient(username string) {
 	c.username = username
 	c.registered = true
 	c.SendCE(
-		c.createCE(
+		createCE(
 			NewUserConnected,
 			cloudevents.TextPlain,
 			username,
@@ -171,7 +199,7 @@ func (c *client) processWSMessage(msg map[string]interface{}, local bool) error 
 			}
 
 			c.SendCE(
-				c.createCE(
+				createCE(
 					UserReconnected,
 					cloudevents.ApplicationJSON,
 					map[string]interface{}{
@@ -196,7 +224,7 @@ func (c *client) processWSMessage(msg map[string]interface{}, local bool) error 
 			}
 
 			c.SendCE(
-				c.createCE(
+				createCE(
 					FirstUserConnection,
 					cloudevents.ApplicationJSON,
 					map[string]interface{}{
@@ -209,18 +237,23 @@ func (c *client) processWSMessage(msg map[string]interface{}, local bool) error 
 			c.connectToClient(username)
 		}
 	} else {
-		if val, ok := manager.usernames[msg["to"].(string)]; ok && val != nil {
+		if _, ok := msg["from"]; !ok {
+			msg["from"] = c.username
+		}
+
+		val, ok := manager.usernames[msg["to"].(string)]
+		if ok && val != nil && val.socket != nil {
 			websocket.JSON.Send(
 				val.socket,
 				map[string]string{
-					"from":    c.username,
+					"from":    msg["from"].(string),
 					"message": msg["message"].(string),
 				},
 			)
-		} else if !ok && local {
+		} else if (!ok || val.socket == nil) && local {
 			c.SendCE(
-				c.createCE(
-					FirstUserConnection,
+				createCE(
+					MessageFromUser,
 					cloudevents.ApplicationJSON,
 					msg,
 				),

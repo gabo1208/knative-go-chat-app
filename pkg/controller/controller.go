@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"sync"
 
@@ -31,4 +32,6 @@ func (c *Controller) Mux() *http.ServeMux {
 
 func (c *Controller) SetCEClient(client ceclient.Client) {
 	ceClient = client
+	log.Println("Getting external clusters usernames")
+	manager.getExternalUsernames()
 }

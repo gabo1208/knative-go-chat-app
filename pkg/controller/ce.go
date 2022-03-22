@@ -19,10 +19,36 @@ const (
 	UserReconnected     = "gabo1208.knative-go-chat-app.UserReconnected"
 	NewUserConnected    = "gabo1208.knative-go-chat-app.NewUserConnected"
 	UserDisconnected    = "gabo1208.knative-go-chat-app.UserDisconnected"
+	MessageFromUser     = "gabo1208.knative-go-chat-app.MessageFromUser"
+	GetUsers            = "gabo1208.knative-go-chat-app.GetUsers"
+	ExternalUsers       = "gabo1208.knative-go-chat-app.ExternalUsers"
 )
 
 func (c *Controller) CeHandler(event cloudevents.Event) {
 	fmt.Println("got", event.String())
+	if event.Type() == GetUsers {
+		log.Printf("sending usernames %v", manager.usernames)
+		SendCEViaHTTP(
+			createCE(GetUsers, cloudevents.ApplicationJSON, GetUsernames(manager.usernames)),
+			string(event.Data()),
+		)
+		return
+	} else if event.Type() == ExternalUsers {
+		AppendUsernames(&event, &manager)
+		return
+	} else if event.Type() == NewUserConnected {
+		username := string(event.Data())
+		log.Printf("adding external username %s", username)
+		manager.usernames[username] = &client{
+			id:         uuid.New().String(),
+			username:   username,
+			registered: true,
+		}
+	} else if event.Type() == UserDisconnected {
+		username := string(event.Data())
+		log.Printf("removing external username %s", username)
+		delete(manager.usernames, username)
+	}
 
 	var msg map[string]interface{}
 	if err := json.Unmarshal(event.Data(), &msg); err != nil {
@@ -37,12 +63,11 @@ func (c *Controller) CeHandler(event cloudevents.Event) {
 		err := user.processWSMessage(msg, false)
 		if err != nil {
 			log.Print(err)
-			return
 		}
 	}
 }
 
-func (c *client) createCE(ceType, contentType string, data interface{}) *cloudevents.Event {
+func createCE(ceType, contentType string, data interface{}) *cloudevents.Event {
 	cloudEvent := cloudevents.NewEvent()
 	cloudEvent.SetID(uuid.NewString())
 	cloudEvent.SetSource(ChatAppEventSource)
@@ -58,21 +83,25 @@ func (c *client) createCE(ceType, contentType string, data interface{}) *cloudev
 func (c *client) SendCE(ce *cloudevents.Event, globalEvent, local bool) {
 	if globalEvent {
 		// If the msg should be sent to all users in the local instance
-		if !local {
+		if local {
 			manager.broadcast <- ce
 		}
 		// Send the message to all the registered brokers
 		otherClusters := os.Getenv("CLUSTERS_BROKERS_URI")
 		for _, uri := range strings.Split(otherClusters, ",") {
 			log.Printf("sending to %s", uri)
-			ctx := cloudevents.ContextWithTarget(context.Background(), uri)
-			if result := ceClient.Send(ctx, *ce); cloudevents.IsUndelivered(result) {
-				log.Fatalf("failed to send, %v", result)
-			} else {
-				log.Printf("res %s", result)
-			}
+			SendCEViaHTTP(ce, uri)
 		}
 	} else {
 		websocket.JSON.Send(c.socket, *ce)
+	}
+}
+
+func SendCEViaHTTP(ce *cloudevents.Event, uri string) {
+	ctx := cloudevents.ContextWithTarget(context.Background(), uri)
+	if result := ceClient.Send(ctx, *ce); cloudevents.IsUndelivered(result) {
+		log.Fatalf("failed to send, %v", result)
+	} else {
+		log.Printf("ce res %v", result)
 	}
 }

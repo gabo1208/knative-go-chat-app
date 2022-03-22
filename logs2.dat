@@ -1,0 +1,73 @@
+2022/03/22 18:25:39 Getting external clusters usernames
+2022/03/22 18:25:39 sending GetUsers event to http://chat-broker-broker-ingress.chat-demo.svc.cluster.local
+2022/03/22 18:25:39 res 202: 
+2022/03/22 18:25:39 Server starting on port 8080
+2022/03/22 18:25:48 WS connection...
+2022/03/22 18:25:48 receiving map[reconnecting:%!s(bool=true) username:gabo2]
+2022/03/22 18:25:48 reconnecting gabo2
+2022/03/22 18:25:48 failed to reconnect
+2022/03/22 18:25:49 WS connection...
+2022/03/22 18:25:49 receiving map[reconnecting:%!s(bool=true) username:gabo]
+2022/03/22 18:25:49 reconnecting gabo
+2022/03/22 18:25:49 failed to reconnect
+2022/03/22 18:26:00 WS connection...
+2022/03/22 18:26:00 receiving map[reconnecting:%!s(bool=true) username:gabo2]
+2022/03/22 18:26:00 reconnecting gabo2
+2022/03/22 18:26:00 failed to reconnect
+2022/03/22 18:26:01 WS connection...
+2022/03/22 18:26:01 receiving map[reconnecting:%!s(bool=true) username:gabo]
+2022/03/22 18:26:01 reconnecting gabo
+2022/03/22 18:26:01 failed to reconnect
+2022/03/22 18:26:10 WS connection...
+2022/03/22 18:26:11 WS connection...
+got Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.NewUserConnected
+  source: gabo1208.knative-go-chat-app/source
+  id: 0d29ef46-108f-445e-ac59-457b5b14fdb4
+  time: 2022-03-22T18:26:19.455868Z
+  datacontenttype: text/plain
+Data,
+  gabo
+
+2022/03/22 18:26:19 invalid character 'g' looking for beginning of value
+2022/03/22 18:26:30 receiving map[username:test]
+2022/03/22 18:26:30 First message from client 4849094a-00cc-4969-afb0-b650dccfd1c0 updating username
+2022/03/22 18:26:30 sending to http://chat-broker-broker-ingress.chat-demo.svc.cluster.local
+2022/03/22 18:26:30 Broadcasting to 2 clients: Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.NewUserConnected
+  source: gabo1208.knative-go-chat-app/source
+  id: 1ea225bf-5588-4766-b483-b0b578ed1d8b
+  datacontenttype: text/plain
+Data,
+  test
+2022/03/22 18:26:30 Broadcasting message to client 4849094a-00cc-4969-afb0-b650dccfd1c0
+2022/03/22 18:26:30 res 202: 
+2022/03/22 18:26:41 invalid character 'e' in literal true (expecting 'r')
+got Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.NewUserConnected
+  source: gabo1208.knative-go-chat-app/source
+  id: 4770feab-dd35-44d0-8200-c9d212c5942d
+  time: 2022-03-22T18:26:41.5684705Z
+  datacontenttype: text/plain
+Data,
+  test
+
+2022/03/22 18:26:45 receiving map[username:test]
+2022/03/22 18:26:45 First message from client e3f3952d-c360-4074-9219-d81b5b70c7b4 updating username
+2022/03/22 18:26:47 receiving map[username:test1]
+2022/03/22 18:26:47 First message from client e3f3952d-c360-4074-9219-d81b5b70c7b4 updating username
+2022/03/22 18:26:47 sending to http://chat-broker-broker-ingress.chat-demo.svc.cluster.local
+2022/03/22 18:26:47 Broadcasting to 2 clients: Context Attributes,
+  specversion: 1.0
+  type: gabo1208.knative-go-chat-app.NewUserConnected
+  source: gabo1208.knative-go-chat-app/source
+  id: 84c274f1-d3ac-422c-9b8e-cd6897a02bb8
+  datacontenttype: text/plain
+Data,
+  test1
+2022/03/22 18:26:47 Broadcasting message to client e3f3952d-c360-4074-9219-d81b5b70c7b4
+2022/03/22 18:26:47 Broadcasting message to client 4849094a-00cc-4969-afb0-b650dccfd1c0
+2022/03/22 18:26:47 res 202: 

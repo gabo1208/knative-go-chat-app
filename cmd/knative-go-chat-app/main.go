@@ -47,14 +47,14 @@ func main() {
 		c.RootHandler(w, r)
 	})
 
-	t.Handler = c.Mux()
-
 	ce, err := cloudevents.NewClient(t, cloudevents.WithUUIDs(), cloudevents.WithTimeNow())
 	if err != nil {
 		log.Fatalf("failed to create cloudevents client, %s", err.Error())
 	}
 
 	c.SetCEClient(ce)
+	t.Handler = c.Mux()
+
 	log.Printf("Server starting on port %d\n", env.Port)
 	if err := ce.StartReceiver(context.Background(), c.CeHandler); err != nil {
 		log.Fatalf("failed to start cloudevent receiver, %s", err.Error())
