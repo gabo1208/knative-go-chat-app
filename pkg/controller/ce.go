@@ -105,10 +105,11 @@ func (c *client) SendCE(ce *cloudevents.Event, globalEvent, local bool) {
 			manager.broadcast <- ce
 		}
 		// Send the message to all the registered brokers
-		otherClusters := os.Getenv("CLUSTERS_BROKERS_URI")
-		for _, uri := range strings.Split(otherClusters, ",") {
-			log.Printf("sending to %s", uri)
-			SendCEViaHTTP(ce, uri)
+		if otherClusters := os.Getenv("CLUSTERS_BROKERS_URI"); otherClusters != "" {
+			for _, uri := range strings.Split(otherClusters, ",") {
+				log.Printf("sending to %s", uri)
+				SendCEViaHTTP(ce, uri)
+			}
 		}
 	} else {
 		websocket.JSON.Send(c.socket, *ce)

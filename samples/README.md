@@ -22,3 +22,13 @@ To run this samples simply run:
 ```bash
 ko apply -Rf samples/$SAMPLE_NAME
 ```
+In the case of the multi-namespace-topology you need to wait for both of the brokers to be ready before starting the chat services for the events to be sent correctly 
+
+
+## Cleanup
+
+To clean any of the examples just run:
+
+```bash
+ko delete -Rf samples/$SAMPLE_NAME
+```

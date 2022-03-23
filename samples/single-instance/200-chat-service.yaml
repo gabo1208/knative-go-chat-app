@@ -2,6 +2,7 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: knative-go-chat-app
+  namespace: single-demo
 spec:
   template:
     metadata:

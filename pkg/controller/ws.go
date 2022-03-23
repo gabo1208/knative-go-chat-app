@@ -136,11 +136,13 @@ func (c *Controller) WSHandler(ws *websocket.Conn) {
 }
 
 func (m *clientManager) getExternalUsernames() {
-	ce := createCE(GetUsers, cloudevents.TextPlain, os.Getenv("OWN_BROKER_URI"))
-	otherClusters := os.Getenv("CLUSTERS_BROKERS_URI")
-	for _, uri := range strings.Split(otherClusters, ",") {
-		log.Printf("sending GetUsers event to %s", uri)
-		SendCEViaHTTP(ce, uri)
+	if ownURI := os.Getenv("OWN_BROKER_URI"); ownURI != "" {
+		ce := createCE(GetUsers, cloudevents.TextPlain, os.Getenv("OWN_BROKER_URI"))
+		otherClusters := os.Getenv("CLUSTERS_BROKERS_URI")
+		for _, uri := range strings.Split(otherClusters, ",") {
+			log.Printf("sending GetUsers event to %s", uri)
+			SendCEViaHTTP(ce, uri)
+		}
 	}
 }
 
