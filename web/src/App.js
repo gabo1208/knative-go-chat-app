@@ -21,7 +21,7 @@ export default class App extends React.Component {
       selectedUsername: "",
       connectedUsers: {},
       // This while I change to typescript
-      // userModel: {username: string, messages: [{content: string, mine: bool}]}
+      // userModel: {username: string, messages: [{content: string, mine: bool}], connected: bool}
       width: 0
     }
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
@@ -138,11 +138,13 @@ export default class App extends React.Component {
     const showError = () => (this.setState(state => ({ ...state, open: !state.open })))
 
     const onCloudEvent = (event) => {
-      let menuBarClass
       console.log(event)
+      let menuBarClass = event.type === GetConnectedUsers
+        ? this.state.menuBarClass
+        : ''
+
       switch (event.type) {
         case GetConnectedUsers:
-          menuBarClass = this.state.menuBarClass
         case UserReconnected:
         case FirstUserConnection:
           this.setState(state => ({
@@ -154,7 +156,8 @@ export default class App extends React.Component {
               ...event.data.connectedUsers.reduce((acc, username) => {
                 if (!state.connectedUsers[username]) {
                   acc[username] = {
-                    messages: state.connectedUsers[username]?.messages || []
+                    messages: state.connectedUsers[username]?.messages || [],
+                    connected: true
                   }
                 }
                 return acc
@@ -168,17 +171,16 @@ export default class App extends React.Component {
               ...state,
               menuBarClass: '',
               connectedUsers: {
-                [event.data]: { messages: [] },
+                [event.data]: { messages: [], connected: true },
                 ...state.connectedUsers
               }
             }))
           }
           break
         case UserDisconnected:
-          this.setState(state => {
-            delete state.connectedUsers[event.data]
-            return state
-          })
+          this.setState(state => (
+            state.connectedUsers[event.data].connected = false
+          ))
           break
         default:
           console.log("error unnexpected event", event)
