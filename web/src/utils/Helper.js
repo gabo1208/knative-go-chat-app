@@ -5,6 +5,7 @@ export const FirstUserConnection = "gabo1208.knative-go-chat-app.FirstUserConnec
 export const UserReconnected = "gabo1208.knative-go-chat-app.UserReconnected"
 export const UserDisconnected = "gabo1208.knative-go-chat-app.UserDisconnected"
 export const ChatAppEventSource = "gabo1208.knative-go-chat-app/source"
+export const GetConnectedUsers = "gabo1208.knative-go-chat-app.GetConnectedUsers"
 
 function useWindowWidth() {
   const [size, setWidth] = useState(0);

@@ -22,6 +22,7 @@ const (
 	MessageFromUser     = "gabo1208.knative-go-chat-app.MessageFromUser"
 	GetUsers            = "gabo1208.knative-go-chat-app.GetUsers"
 	ExternalUsers       = "gabo1208.knative-go-chat-app.ExternalUsers"
+	GetConnectedUsers   = "gabo1208.knative-go-chat-app.GetConnectedUsers"
 )
 
 func (c *Controller) CeHandler(event cloudevents.Event) {
@@ -29,12 +30,19 @@ func (c *Controller) CeHandler(event cloudevents.Event) {
 	if event.Type() == GetUsers {
 		log.Printf("sending usernames %v", manager.usernames)
 		SendCEViaHTTP(
-			createCE(GetUsers, cloudevents.ApplicationJSON, GetUsernames(manager.usernames)),
+			createCE(ExternalUsers, cloudevents.ApplicationJSON, GetUsernames(manager.usernames)),
 			string(event.Data()),
 		)
 		return
 	} else if event.Type() == ExternalUsers {
+		log.Printf("appending external usernames %s", event)
 		AppendUsernames(&event, &manager)
+		manager.broadcast <- createCE(
+			GetConnectedUsers,
+			cloudevents.ApplicationJSON,
+			map[string]interface{}{
+				"connectedUsers": GetUsernames(manager.usernames),
+			})
 		return
 	} else if event.Type() == NewUserConnected {
 		username := string(event.Data())
@@ -44,10 +52,20 @@ func (c *Controller) CeHandler(event cloudevents.Event) {
 			username:   username,
 			registered: true,
 		}
+		manager.broadcast <- createCE(
+			NewUserConnected,
+			cloudevents.TextPlain,
+			string(event.Data()))
+		return
 	} else if event.Type() == UserDisconnected {
 		username := string(event.Data())
 		log.Printf("removing external username %s", username)
 		delete(manager.usernames, username)
+		manager.broadcast <- createCE(
+			UserDisconnected,
+			cloudevents.TextPlain,
+			string(event.Data()))
+		return
 	}
 
 	var msg map[string]interface{}

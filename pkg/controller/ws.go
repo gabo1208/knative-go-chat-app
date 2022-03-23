@@ -47,7 +47,7 @@ func (manager *clientManager) start() {
 		case message := <-manager.broadcast:
 			log.Printf("Broadcasting to %d clients: %+v", len(manager.usernames), message)
 			for _, client := range manager.usernames {
-				if client.registered {
+				if client.registered && client.socket != nil {
 					log.Printf("Broadcasting message to client %s", client.id)
 					client.SendCE(message.(*cloudevents.Event), false, false)
 				}
@@ -257,7 +257,7 @@ func (c *client) processWSMessage(msg map[string]interface{}, local bool) error 
 					cloudevents.ApplicationJSON,
 					msg,
 				),
-				false,
+				true,
 				false)
 		}
 	}

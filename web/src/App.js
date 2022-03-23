@@ -6,7 +6,8 @@ import {
   FirstUserConnection,
   NewUserConnected,
   UserReconnected,
-  UserDisconnected
+  UserDisconnected,
+  GetConnectedUsers
 } from './utils/Helper'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 export default class App extends React.Component {
@@ -137,13 +138,16 @@ export default class App extends React.Component {
     const showError = () => (this.setState(state => ({ ...state, open: !state.open })))
 
     const onCloudEvent = (event) => {
+      let menuBarClass
       console.log(event)
       switch (event.type) {
+        case GetConnectedUsers:
+          menuBarClass = this.state.menuBarClass
         case UserReconnected:
         case FirstUserConnection:
           this.setState(state => ({
             ...state,
-            menuBarClass: '',
+            menuBarClass,
             username: event.data.username || state.username,
             connectedUsers: {
               ...state.connectedUsers,
@@ -159,14 +163,16 @@ export default class App extends React.Component {
           }))
           break
         case NewUserConnected:
-          this.setState(state => ({
-            ...state,
-            menuBarClass: '',
-            connectedUsers: {
-              [event.data]: { messages: [] },
-              ...state.connectedUsers
-            }
-          }))
+          if (!this.state.connectedUsers[event.data]) {
+            this.setState(state => ({
+              ...state,
+              menuBarClass: '',
+              connectedUsers: {
+                [event.data]: { messages: [] },
+                ...state.connectedUsers
+              }
+            }))
+          }
           break
         case UserDisconnected:
           this.setState(state => {
